@@ -29,15 +29,14 @@ For example, a **sequence detector** that detects `"1011"`:
 
 ## Verilog Code
 ```
-// Mealy Sequence Detector for sequence "11011"
+`timescale 1ns/1ps
+
 module mealy_seq_detector_11011 (
     input clk,
     input reset,
     input x,
     output reg z
 );
-
-    // State encoding
     parameter S0 = 3'b000,
               S1 = 3'b001,
               S2 = 3'b010,
@@ -47,14 +46,82 @@ module mealy_seq_detector_11011 (
 
     reg [2:0] state, next_state;
 
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            state <= S0;
+        else
+            state <= next_state;
+    end
 
-
-
+    always @(*) begin
+        case (state)
+            S0: begin
+                if (x) begin
+                    next_state = S1;
+                    z = 0;
+                end else begin
+                    next_state = S0;
+                    z = 0;
+                end
+            end
+            S1: begin
+                if (x) begin
+                    next_state = S2;
+                    z = 0;
+                end else begin
+                    next_state = S0;
+                    z = 0;
+                end
+            end
+            S2: begin
+                if (x) begin
+                    next_state = S2;
+                    z = 0;
+                end else begin
+                    next_state = S3;
+                    z = 0;
+                end
+            end
+            S3: begin
+                if (x) begin
+                    next_state = S4;
+                    z = 0;
+                end else begin
+                    next_state = S0;
+                    z = 0;
+                end
+            end
+            S4: begin
+                if (x) begin
+                    next_state = S5;
+                    z = 1;
+                end else begin
+                    next_state = S3;
+                    z = 0;
+                end
+            end
+            S5: begin
+                if (x) begin
+                    next_state = S2;
+                    z = 0;
+                end else begin
+                    next_state = S3;
+                    z = 0;
+                end
+            end
+            default: begin
+                next_state = S0;
+                z = 0;
+            end
+        endcase
     end
 endmodule
+
 ```
 ## Testbench
 ```
+`timescale 1ns/1ps
+
 module tb_mealy_seq_detector_11011;
     reg clk, reset, x;
     wire z;
@@ -66,24 +133,47 @@ module tb_mealy_seq_detector_11011;
         .z(z)
     );
 
-    // Clock generation
     initial begin
         clk = 0;
         forever #5 clk = ~clk;
     end
 
-    // Stimulus
     initial begin
         reset = 1; x = 0;
+        #10 reset = 0;
 
+        // Input: 1 1 0 1 1 0 1 1 0 1
+        x = 1; #10;
+        x = 1; #10;
+        x = 0; #10;
+        x = 1; #10;
+        x = 1; #10;
+        x = 0; #10;
+        x = 1; #10;
+        x = 1; #10;
+        x = 0; #10;
+        x = 1; #10;
+
+        #20 $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t | X=%b | Z=%b | State=%b", $time, x, z, uut.state);
+    end
 endmodule
+
 ```
 ## Simulation Output 
 ---
 
-Paste the output here
+<img width="1918" height="1198" alt="image" src="https://github.com/user-attachments/assets/3c1cb67a-036c-4ece-8e6e-d8be2b0cd8ea" />
 
 ---
+
+
+
+
+
 ## Result
 
 The Mealy Machine Sequence Detector for the bit pattern "11011" was successfully designed and simulated using Verilog HDL.
